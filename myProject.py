@@ -4,9 +4,10 @@ from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+import requests
+from bs4 import BeautifulSoup
 
 kivy.require("1.10.1")
-
 
 class MyGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -37,6 +38,21 @@ class MyGrid(GridLayout):
         self.count += 1
         upcount = self.count
         print("Scrape button pressed ", upcount)
+        data = requests.get('https://au.norton.com/online-threats/threats.html')
+
+        soup = BeautifulSoup(data.text, 'html.parser')
+
+        for tr in soup.find_all('tr'):
+            for td in tr.find_all('td'):
+                print(td.text)
+        data = requests.get(
+            'https://www.mcafee.com/enterprise/en-gb/threat-center/threat-landscape-dashboard/exploit-kits.html')
+
+        soup = BeautifulSoup(data.text, 'html.parser')
+
+        for tr in soup.find_all('tr'):
+            for td in tr.find_all('td'):
+                print(td.text)
 
     def search(self, instance):
         self.count += 1
