@@ -11,7 +11,7 @@ kivy.require("1.10.1")
 
 class MyGrid(GridLayout):
     def __init__(self, **kwargs):
-        super(MyGrid, self).__init__(**kwargs)  # Use **kwargs because we don't know how many arguments we may receive.
+        super(MyGrid, self).__init__(**kwargs)  
         self.cols = 2
 
         self.count = 0
