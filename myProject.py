@@ -148,6 +148,60 @@ class MyGrid(GridLayout):
             self.scrape_norton_table(db_col, "https://au.norton.com/online-threats/a-z-listing/" + d + ".html")
         print("Scraping Norton Complete")
 
+    def scrape_malwarebytes_table(self, db_col, url):
+        data = requests.get(url)
+        soup = BeautifulSoup(data.text, "html.parser")
+
+        for section in soup.find_all("section"):
+            name = None
+            source = None
+            date = datetime.now()
+            threat_type = None
+            description = None
+            for l in section.find_all("a"):
+                source = "https://blog.malwarebytes.com/detections/" + l["href"]
+                break
+            if source is None:
+                continue
+            count = 0
+
+            for detections in section.find_all("detections"):
+                if count == 0:
+                    name = detections.text.lstrip().rstrip()
+                elif count == 1:
+                    threat_type = detections.text.lstrip().rstrip()
+                elif count == 2:
+                    if len(col.text) > 7:
+                        try:
+                            date = datetime.strptime(column.text.strip(), "%d/%m/%Y")
+                        except:
+                            print("Bad date")
+                count += 1
+
+            data2 = requests.get(source)
+            soup2 = BeautifulSoup(data2.text, "html.parser")
+            for detections in soup2.find_all("div", class_="technical-description"):
+                description = detections.text.strip("\n").strip("\t")
+
+            existing_record_matches = db_col.find({"name": name, "source": source})
+            if existing_record_matches.count() > 0:
+                db_col.update_one({"name": name, "source": source},
+                                  {"$set": {"date": date, "type": threat_type, "description": description}})
+            else:
+                new_record = {"name": name, "source": source, "date": date, "type": threat_type,
+                              "description": description}
+                db_col.insert_one(new_record)
+            self.numScraped += 1
+            print("Malwarebytes threats scraped {" + str(self.numScraped) + "}...")
+
+    def scrape_malwarebytes(self, db_col):
+        print("Scraping Malwarebytes...")
+        feed = ["https://blog.malwarebytes.com/detections/", "Detections"]
+
+        for d in feed:
+            self.scrape_malwarebytes_table(db_col, "https://blog.malwarebytes.com/detections/" + d + ".html")
+        print("Scraping Malwarebytes Complete")
+
     def webscrape(self, instance):
         print("Web Scrape button pressed ")
         client = MongoClient(port=27017)
@@ -155,7 +209,8 @@ class MyGrid(GridLayout):
         db_col = db.threats
         self.numScraped = 0
         self.scrape_mcafee(db_col)
-        self.scrape_norton(db_col)
+        # self.scrape_norton(db_col)
+        # self.scrape_malwarebytes(db_col)
         print("All Scrapes Complete")
 
     def twitterscrape(self, instance):
