@@ -5,9 +5,12 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from pymongo import MongoClient
-import requests
 from datetime import datetime
+import requests
 from bs4 import BeautifulSoup
+import tweepy
+import csv
+import pandas as pd
 
 kivy.require("1.10.1")
 
@@ -96,6 +99,58 @@ class MyGrid(GridLayout):
             self.scrape_mcafee_table(db_col, d[1], d[0])
         print("Scraping McAfee Complete")
 
+    def scrape_kaspersky_table(self, db_col, url):
+        data = requests.get(url)
+        soup = BeautifulSoup(data.text, "html.parser")
+
+        for tr in soup.find_all("tr"):
+            name = None
+            source = None
+            date = datetime.now()
+            threat_type = None
+            description = None
+            for l in tr.find_all("a"):
+                source = "https://threats.kaspersky.com" + l["href"]
+                break
+            if source is None:
+                continue
+            count = 0
+
+            for td in tr.find_all("td"):
+                if count == 0:
+                    name = td.text.lstrip().rstrip()
+                elif count == 1:
+                    threat_type = td.text.lstrip().rstrip()
+                elif count == 2:
+                    if len(td.text) > 7:
+                        try:
+                            date = datetime.strptime(td.text.strip(), "%d/%m/%Y")
+                        except:
+                            print("Bad date")
+                count += 1
+
+            data2 = requests.get(source)
+            soup2 = BeautifulSoup(data2.text, "html.parser")
+            for td in soup2.find_all("a", class_="gtm_threats_malware"):
+                description = td.text.strip("\n").strip("\t")
+
+            existing_record_matches = db_col.find({"name": name, "source": source})
+            if existing_record_matches.count() > 0:
+                db_col.update_one({"name": name, "source": source}, {"$set": {"date": date, "type": threat_type, "description": description}})
+            else:
+                new_record = {"name": name, "source": source, "date": date, "type": threat_type, "description": description}
+                db_col.insert_one(new_record)
+            self.numScraped += 1
+            print("Kaspersky threats scraped {" + str(self.numScraped) + "}...")
+
+    def scrape_kaspersky(self, db_col):
+        print("Scraping Kaspersky...")
+        feed = ["https://threats.kaspersky.com/en/threat/", "Threats"]
+
+        for d in feed:
+            self.scrape_norton_table(db_col, "https://threats.kaspersky.com/en/threat/" + d + ".html")
+        print("Scraping Kaspersky Complete")
+
     def scrape_norton_table(self, db_col, url):
         data = requests.get(url)
         soup = BeautifulSoup(data.text, "html.parser")
@@ -155,6 +210,7 @@ class MyGrid(GridLayout):
         db_col = db.threats
         self.numScraped = 0
         self.scrape_mcafee(db_col)
+        # self.scrape_kaspersky(db_col)
         # self.scrape_norton(db_col)
         print("All Scrapes Complete")
 
@@ -162,14 +218,25 @@ class MyGrid(GridLayout):
         self.count += 1
         upcount = self.count
         print("Twitter Scrape button pressed ", upcount)
-        client = MongoClient(port=27017)
-        db = client.projectdb
-        col = db.threats
-        serverStatusResult = db.command("serverStatus")
+        # Personal Twitter Developer Keys and Tokens
+        consumer_key = "nX7aJP4OUszK1dFgfm6BTZrXQ"
+        consumer_secret = "s1C56X7kGeSrum8M6VXs8IdfTMOfKDmpQnJTDodLcCr6kbv938"
+        access_token = '1128419970960936961-ocBanOhQYajRPcXQ3c1alFBf3BlanX'
+        access_token_secret = 'elHOFXT79tht3RmP1V90lW6bKJhHxNjHHHDolFVyfadTO'
 
-        # Insert a record (below)
-        # newRecord = {"name": "test123", "source": "Twitter @test", "date": "30/01/2001", "type": "ware", "description": "test123"}
-        # col.insert_one(newRecord)
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(access_token, access_token_secret)
+        api = tweepy.API(auth, wait_on_rate_limit=True)
+
+        csvFile = open('twitterscrape.csv', 'a')
+        csvWriter = csv.writer(csvFile)
+
+        for tweet in tweepy.Cursor(api.search, q="#cyber", count=100,
+                                   lang="en",
+                                   since="2017-04-03").items():
+            print(tweet.created_at, tweet.text)
+            csvWriter.writerow([tweet.created_at, tweet.text.encode('utf-8')])
+        print("Twitter Scrape Complete")
 
     def newsscrape(self, instance):
         self.count += 1
