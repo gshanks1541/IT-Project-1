@@ -31,22 +31,17 @@ class MyGrid(GridLayout):
         self.add_widget(self.submit)
 
         self.count = 0
-        self.submit = Button(text="News Scrape", font_size=40)
-        self.submit.bind(on_press=self.newsscrape)
-        self.add_widget(self.submit)
-
-        self.count = 0
         self.submit = Button(text="Update DB", font_size=40)
         self.submit.bind(on_press=self.updatedb)
         self.add_widget(self.submit)
 
         self.count = 0
-        self.submit = Button(text="Search Threat:", font_size=40)
+        self.submit = Button(text="Search Threat", font_size=40)
         self.submit.bind(on_press=self.search)
         self.add_widget(self.submit)
 
-        self.input = TextInput(multiline=False)
-        self.add_widget(self.input)
+        # self.input = TextInput(multiline=False)
+        # self.add_widget(self.input)
 
     def scrape_mcafee_table(self, db_col, threat_type, url):
         data = requests.get(url)
@@ -228,28 +223,13 @@ class MyGrid(GridLayout):
         auth.set_access_token(access_token, access_token_secret)
         api = tweepy.API(auth, wait_on_rate_limit=True)
 
-        csvFile = open('twitterscrape.csv', 'a')
+        csvFile = open("twitterscrape.csv", "a")
         csvWriter = csv.writer(csvFile)
 
-        for tweet in tweepy.Cursor(api.search, q="#cyber", count=100,
-                                   lang="en",
-                                   since="2017-04-03").items():
+        for tweet in tweepy.Cursor(api.search, q="#cyber", count=100, lang="en", since="2017-04-03").items():
             print(tweet.created_at, tweet.text)
-            csvWriter.writerow([tweet.created_at, tweet.text.encode('utf-8')])
+            csvWriter.writerow([tweet.created_at, tweet.text.encode("utf-8")])
         print("Twitter Scrape Complete")
-
-    def newsscrape(self, instance):
-        self.count += 1
-        upcount = self.count
-        print("News Scrape button pressed ", upcount)
-        client = MongoClient(port=27017)
-        db = client.projectdb
-        col = db.threats
-        serverStatusResult = db.command("serverStatus")
-
-        # Insert a record (below)
-        # newRecord = {"name": "test123", "source": "www.newssite.com", "date": "30/01/2001", "type": "ware", "description": "test123"}
-        # col.insert_one(newRecord)
 
     def updatedb(self, instance):
         self.count += 1
@@ -261,9 +241,8 @@ class MyGrid(GridLayout):
         serverStatusResult = db.command("serverStatus")
 
         # Insert a record (below)
-        # newRecord = {"name": "test123", "source": "www.test123.com", "date": "30/01/2001", "type": "ware", "description": "test123"}
+        # newRecord = {"name": "test123", "source": "www.newssite.com", "date": "30/01/2001", "type": "ware", "description": "test123"}
         # col.insert_one(newRecord)
-        # col.insert_many(newRecord)
 
         # Delete records (below)
         # col.delete_one({"type": "ware"})
@@ -273,10 +252,10 @@ class MyGrid(GridLayout):
         # col.update_one({"name": "test123"}, {"$set": {"type": "ware"}})
         # col.update_many({"name": "test123"}, {"$set": {"type": "ware"}})
 
-        print("Result: ", db.list_collection_names())
-        for record in db.threats.find():
-            print(record)
-        #print(serverStatusResult)
+        # print document list
+        # print("Result: ", db.list_collection_names())
+        # for record in db.threats.find():
+        #    print(record)
 
     def search(self, instance):
         self.count += 1
