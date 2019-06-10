@@ -219,10 +219,10 @@ class MyGrid(GridLayout):
         upcount = self.count
         print("Twitter Scrape button pressed ", upcount)
         # Personal Twitter Developer Keys and Tokens
-        consumer_key = "nX7aJP4OUszK1dFgfm6BTZrXQ"
-        consumer_secret = "s1C56X7kGeSrum8M6VXs8IdfTMOfKDmpQnJTDodLcCr6kbv938"
-        access_token = '1128419970960936961-ocBanOhQYajRPcXQ3c1alFBf3BlanX'
-        access_token_secret = 'elHOFXT79tht3RmP1V90lW6bKJhHxNjHHHDolFVyfadTO'
+        consumer_key = ""
+        consumer_secret = ""
+        access_token = ""
+        access_token_secret = ""
 
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
