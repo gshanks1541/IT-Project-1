@@ -1,0 +1,51 @@
+    def scrape_kaspersky_table(self, db_col, url):
+        data = requests.get(url)
+        soup = BeautifulSoup(data.text, "html.parser")
+
+        for tr in soup.find_all("tr"):
+            name = None
+            source = None
+            date = datetime.now()
+            threat_type = None
+            description = None
+            for l in tr.find_all("a"):
+                source = "https://threats.kaspersky.com" + l["href"]
+                break
+            if source is None:
+                continue
+            count = 0
+
+            for td in tr.find_all("td"):
+                if count == 0:
+                    name = td.text.lstrip().rstrip()
+                elif count == 1:
+                    threat_type = td.text.lstrip().rstrip()
+                elif count == 2:
+                    if len(td.text) > 7:
+                        try:
+                            date = datetime.strptime(td.text.strip(), "%d/%m/%Y")
+                        except:
+                            print("Bad date")
+                count += 1
+
+            data2 = requests.get(source)
+            soup2 = BeautifulSoup(data2.text, "html.parser")
+            for td in soup2.find_all("a", class_="gtm_threats_malware"):
+                description = td.text.strip("\n").strip("\t")
+
+            existing_record_matches = db_col.find({"name": name, "source": source})
+            if existing_record_matches.count() > 0:
+                db_col.update_one({"name": name, "source": source}, {"$set": {"date": date, "type": threat_type, "description": description}})
+            else:
+                new_record = {"name": name, "source": source, "date": date, "type": threat_type, "description": description}
+                db_col.insert_one(new_record)
+            self.numScraped += 1
+            print("Kaspersky threats scraped {" + str(self.numScraped) + "}...")
+
+    def scrape_kaspersky(self, db_col):
+        print("Scraping Kaspersky...")
+        feed = ["https://threats.kaspersky.com/en/threat/", "Threats"]
+
+        for d in feed:
+            self.scrape_norton_table(db_col, "https://threats.kaspersky.com/en/threat/" + d + ".html")
+        print("Scraping Kaspersky Complete")
