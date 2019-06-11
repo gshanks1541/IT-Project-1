@@ -48,7 +48,7 @@ class MyGrid(GridLayout):
         self.submit.bind(on_press=self.export_all)
         self.add_widget(self.submit)
 
-        self.search_result = TextInput(multiline=True, text='Search Results')
+        self.search_result = TextInput(multiline=True, text="Search Results")
         self.add_widget(self.search_result)
 
     def scrape_mcafee_table(self, db_col, threat_type, url, is_deep):
@@ -60,7 +60,7 @@ class MyGrid(GridLayout):
             source = None
             date = datetime.now()
             description = None
-            for l in tr.find_all('a', class_="tldThreatName"):
+            for l in tr.find_all("a", class_="tldThreatName"):
                 source = "https://www.mcafee.com" + l["href"]
                 break
 
@@ -195,12 +195,11 @@ class MyGrid(GridLayout):
         threat_type = None
         description = None
 
-
         for tweet in tweepy.Cursor(api.search, q="#cyber", count=100, lang="en", since="2017-04-03").items():
             date = tweet.created_at
             description = tweet.text
-            source0 = tweet.text.find('@')
-            source1 = tweet.text.find(':', source0)
+            source0 = tweet.text.find("@")
+            source1 = tweet.text.find(":", source0)
             if (source0 > 0 and source1 > 0):
                 source = tweet.text[source0:source1]
 
@@ -256,7 +255,6 @@ class MyGrid(GridLayout):
         self.search_result.text = string_builder
         print("Searching for "" + search_term + "" complete")
 
-
     def export_all(self, instance):
         self.numScraped = 0
         print("Exporting all records")
@@ -285,7 +283,6 @@ class MyGrid(GridLayout):
                 description = ""
             csv_writer.writerow([name.encode("utf-8"), source.encode("utf-8"), date.encode("utf-8"), type.encode("utf-8"), description.encode("utf-8")])
         print("All documents exported")
-
 
 class dip(App):
     def build(self):
