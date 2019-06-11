@@ -20,23 +20,23 @@ class MyGrid(GridLayout):
         super(MyGrid, self).__init__(**kwargs)
         self.cols = 2
 
-        self.submit = Button(text="Web Scrape (Shallow)", font_size=40)
+        self.submit = Button(text="Web Scrape (Shallow)", font_size=35)
         self.submit.bind(on_press=self.web_scrape_shallow)
         self.add_widget(self.submit)
 
-        self.submit = Button(text="Web Scrape (Deep)", font_size=40)
+        self.submit = Button(text="Web Scrape (Deep)", font_size=35)
         self.submit.bind(on_press=self.web_scrape_deep)
         self.add_widget(self.submit)
 
-        self.submit = Button(text="Twitter Scrape", font_size=40)
+        self.submit = Button(text="Twitter Scrape", font_size=35)
         self.submit.bind(on_press=self.twitter_scrape)
         self.add_widget(self.submit)
 
-        self.submit = Button(text="Update DB", font_size=40)
+        self.submit = Button(text="Update DB", font_size=35)
         self.submit.bind(on_press=self.updatedb)
         self.add_widget(self.submit)
 
-        self.submit = Button(text="Search Threat", font_size=40)
+        self.submit = Button(text="Search Threat", font_size=35)
         self.submit.bind(on_press=self.search)
         self.add_widget(self.submit)
 
@@ -44,7 +44,7 @@ class MyGrid(GridLayout):
         self.input.bind(on_text_validate=self.search)
         self.add_widget(self.input)
 
-        self.submit = Button(text="Export Data to CSV", font_size=40)
+        self.submit = Button(text="Export Data to CSV", font_size=35)
         self.submit.bind(on_press=self.export_all)
         self.add_widget(self.submit)
 
@@ -163,8 +163,7 @@ class MyGrid(GridLayout):
         db_col = db.threats
         self.numScraped = 0
         self.scrape_mcafee(db_col, is_deep)
-        self.scrape_norton(db_col, is_deep)
-        # self.scrape_kaspersky(db_col)
+        # self.scrape_norton(db_col, is_deep)
         print("All Scrapes Complete")
 
     def web_scrape_shallow(self, instance):
@@ -174,11 +173,12 @@ class MyGrid(GridLayout):
         self.webscrape(True)
 
     def twitter_scrape(self, instance):
-        print("Twitter Scrape Started")
+        print("Scraping Twitter...")
         client = MongoClient(port=27017)
         db = client.projectdb
         db_col = db.threats
         self.numScraped = 0
+
         # Personal Twitter Developer Keys and Tokens
         consumer_key = "nX7aJP4OUszK1dFgfm6BTZrXQ"
         consumer_secret = "s1C56X7kGeSrum8M6VXs8IdfTMOfKDmpQnJTDodLcCr6kbv938"
@@ -195,7 +195,7 @@ class MyGrid(GridLayout):
         threat_type = None
         description = None
 
-        for tweet in tweepy.Cursor(api.search, q="#cyber", count=100, lang="en", since="2017-04-03").items():
+        for tweet in tweepy.Cursor(api.search, q="#cybersecurity", count=100, lang="en", since="2017-01-01").items():
             date = tweet.created_at
             description = tweet.text
             source0 = tweet.text.find("@")
@@ -211,10 +211,10 @@ class MyGrid(GridLayout):
                 db_col.insert_one(new_record)
             self.numScraped += 1
             print("Twitter threats scraped {" + str(self.numScraped) + "}...")
-        print("Twitter Scrape Complete")
+        print("Scraping Twitter Complete")
 
     def updatedb(self, instance):
-        print("Update Database Ran")
+        print("Database Updated")
         client = MongoClient(port=27017)
         db = client.projectdb
         col = db.threats
@@ -257,7 +257,7 @@ class MyGrid(GridLayout):
 
     def export_all(self, instance):
         self.numScraped = 0
-        print("Exporting all records")
+        print("Exporting all documents")
         db_col = MongoClient(port=27017).projectdb.threats
 
         csv_file = open("threats_export.csv", "a")
