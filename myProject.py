@@ -15,7 +15,7 @@ import pandas as pd
 kivy.require("1.10.1")
 
 class MyGrid(GridLayout):
-    numScraped = 0;
+    numScraped = 0
     def __init__(self, **kwargs):
         super(MyGrid, self).__init__(**kwargs)
         self.cols = 2
@@ -56,7 +56,7 @@ class MyGrid(GridLayout):
                 source = "https://www.mcafee.com" + l["href"]
                 break
 
-            count = 0;
+            count = 0
             for td in tr.find_all("td"):
                 if count == 0:
                     name = td.text
@@ -69,7 +69,7 @@ class MyGrid(GridLayout):
             data2 = requests.get(source)
             soup2 = BeautifulSoup(data2.text, "html.parser")
             for tr in soup2.find_all("tr"):
-                count = 0;
+                count = 0
                 for td in tr.find_all("td"):
                     if count == 1:
                         date = datetime.strptime(td.text, "%Y-%m-%d")
@@ -214,10 +214,10 @@ class MyGrid(GridLayout):
         upcount = self.count
         print("Twitter Scrape button pressed ", upcount)
         # Personal Twitter Developer Keys and Tokens
-        consumer_key = ""
-        consumer_secret = ""
-        access_token = ""
-        access_token_secret = ""
+        consumer_key = "nX7aJP4OUszK1dFgfm6BTZrXQ"
+        consumer_secret = "s1C56X7kGeSrum8M6VXs8IdfTMOfKDmpQnJTDodLcCr6kbv938"
+        access_token = "1128419970960936961-ocBanOhQYajRPcXQ3c1alFBf3BlanX"
+        access_token_secret = "elHOFXT79tht3RmP1V90lW6bKJhHxNjHHHDolFVyfadTO"
 
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
@@ -238,7 +238,6 @@ class MyGrid(GridLayout):
         client = MongoClient(port=27017)
         db = client.projectdb
         col = db.threats
-        serverStatusResult = db.command("serverStatus")
 
         # Insert a record (below)
         # newRecord = {"name": "test123", "source": "www.newssite.com", "date": "30/01/2001", "type": "ware", "description": "test123"}
