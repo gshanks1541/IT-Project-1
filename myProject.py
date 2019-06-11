@@ -41,11 +41,15 @@ class MyGrid(GridLayout):
         self.add_widget(self.submit)
 
         self.input = TextInput(multiline=False)
+        self.input.bind(on_text_validate=self.search)
         self.add_widget(self.input)
 
         self.submit = Button(text="Export Data to CSV", font_size=40)
         self.submit.bind(on_press=self.export_all)
         self.add_widget(self.submit)
+
+        self.search_result = TextInput(multiline=True, text='Search Results')
+        self.add_widget(self.search_result)
 
     def scrape_mcafee_table(self, db_col, threat_type, url, is_deep):
         data = requests.get(url)
@@ -234,16 +238,24 @@ class MyGrid(GridLayout):
         #    print(record)
 
     def search(self, instance):
-        print("Search button pressed ")
-        client = MongoClient(port=27017)
-        db = client.projectdb
-        col = db.threats
-        myquery = {"type": "Ransomware"}
-        # {"name": "test123", "source": "www.test123.com", "date": "30/01/2001", "type": "ware", "description": "test123"}
-
-        mydoc = col.find(myquery)
-        for record in mydoc:
+        search_term = self.input.text
+        print("Searching for "" + search_term + """)
+        db_col = MongoClient(port=27017).projectdb.threats
+        my_query = {"name": {"$regex": ".*" + search_term + ".*"}}
+        docs = db_col.find(my_query)
+        string_builder = ""
+        for record in docs:
+            name = record["name"]
+            if name is None:
+                name = ""
+            type = record["type"]
+            if type is None:
+                type = ""
+            string_builder += name + ", " + type + "\n"
             print(record)
+        self.search_result.text = string_builder
+        print("Searching for "" + search_term + "" complete")
+
 
     def export_all(self, instance):
         self.numScraped = 0
@@ -255,24 +267,24 @@ class MyGrid(GridLayout):
         docs = db_col.find()
         for record in docs:
             self.numScraped += 1
-            print('Writing record ' + str(self.numScraped) + ' to CSV')
-            name = record['name']
+            print("Exporting document " + str(self.numScraped) + " to CSV")
+            name = record["name"]
             if name is None:
-                name = ''
-            source = record['source']
+                name = ""
+            source = record["source"]
             if source is None:
-                source = ''
-            date = str(record['date'])
+                source = ""
+            date = str(record["date"])
             if date is None:
-                date = ''
-            type = record['type']
+                date = ""
+            type = record["type"]
             if type is None:
-                type = ''
-            description = record['description']
+                type = ""
+            description = record["description"]
             if description is None:
-                description = ''
+                description = ""
             csv_writer.writerow([name.encode("utf-8"), source.encode("utf-8"), date.encode("utf-8"), type.encode("utf-8"), description.encode("utf-8")])
-        print("Exporting all records complete")
+        print("All documents exported")
 
 
 class dip(App):
